@@ -1,0 +1,673 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Organização de código</title>
+
+  <section>
+    <title>Visão Geral</title>
+
+    <para>Quando você vai além de adicionar melhorias simples em seu website
+    com jQuery e começa a desenvolver aplicações client-side completas, você
+    precisa considerar como organizar seu código. Neste capítulo, nós iremos 
+    dar uma olhada em vários padrões para organização de código que você pode
+    utilizar em usa aplicação com jQuery e explorar o gerenciador de dependências
+    e sistema de build RequireJS.</para>
+    <section>
+      <title>Conceitos Chave</title>
+
+      <para>Antes de irmos para os padrões de organização de código, é importante
+      entender alguns conceitos que são comuns a todos bons padrões de organização
+      de código.</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Seu código deve ser dividido em unidades de funcionalidade - 
+          módulos, serviços, etc. Evite a tentação de ter todo seu código
+          em um enorme bloco dentro do <code>$(document).ready()</code>.</para>
+        </listitem>
+        
+        <listitem>
+          <para>Não se repita. Identifique similaridades entre pedaços de 
+          funcionalidade e use técnicas de herança para evitar código repetitivo.</para>
+        </listitem>
+
+       
+        <listitem>
+          <para>Apesar da natureza centrada no DOM do jQuery, aplicações em 
+          JavaScript não são só sobre o DOM. Lembre-se que não são todas as
+          funcionalidades que necessitam - ou devem - ter uma representação
+          no DOM.</para>
+        </listitem>
+
+        <listitem>
+          <para>Unidades de funcionalidade devem ser <link
+          xlink:href="http://en.wikipedia.org/wiki/Loose_coupling">fracamente
+          acopladas</link> — uma unidade de funcionalidade deve conseguir existir
+          por si só, e a comunicação entre unidades devem ser manipuladas através
+          de um sistema de mensagens, como eventos customizados ou pub/sub. Evite
+          comunicação direta entre unidades de funcionalidade sempre que possível.</para>
+        </listitem>
+
+        <listitem>
+          <para>Unidades de funcionalidade devem ser divididas em pequenos métodos
+          que fazem exatamente uma só coisa. Se seus métodos são maiores que algumas 
+          linhas, você deve considerar uma refatoração.</para>
+        </listitem>
+
+        <listitem>
+          <para>Opções de configuração para suas unidades de funcionalidade -
+          URLS, strings, timeouts, etc. - devem ser informadas em propriedades
+          ou em um objeto de configuração, não espalhadas através do código.</para>
+        </listitem>
+      </itemizedlist>
+
+      <para>O conceito de baixo acoplamento pode ser especialmente problemático
+      para desenvolvedores fazendo sua primeira investida em aplicações complexas,
+      então preste atenção nisso quando você estiver começando.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Encapsulamento</title>
+
+    <para>O primeiro passo para organização de código é separar as partes de
+    sua aplicação em peças distintas; algumas vezes, mesmo este esforço
+    é suficiente para ceder</para> <!-- lend = ceder? emprestar? -->
+
+    <section>
+      <title>O literal objeto</title>
+
+      <para>Um literal objeto é talvez a forma mais simples de encapsular
+      código relacionado. Ele não oferece nenhuma privacidade para propriedades
+      ou métodos, mas é útil para eliminar funções anônimas do seu código,
+      centralizar opções de configuração e facilitar o caminho para o reuso
+      e refatoração.</para>
+
+      <example>
+        <title>Um literal objeto</title>
+
+        <programlisting>var myFeature = {
+    myProperty : 'olá',
+
+    myMethod : function() {
+        console.log(myFeature.myProperty);
+    },
+
+    init : function(settings) {
+        myFeature.settings = settings;
+    },
+
+    readSettings : function() {
+        console.log(myFeature.settings);
+    }
+};
+
+myFeature.myProperty; // 'olá'
+myFeature.myMethod(); // loga 'olá'
+myFeature.init({ foo : 'bar' });
+myFeature.readSettings(); // loga { foo : 'bar' }
+</programlisting>
+      </example>
+
+      <para>O literal objeto acima é simplesmente um objeto associado a uma
+      variável. O objeto tem uma propriedade e vários métodos. Todas as propriedades
+      e métodos são públicas, então qualquer parte da sua aplicação pode ver 
+      as propriedades e chamar métodos no objeto. Enquanto há um método
+      init. não há nada requerendo que ele seja chamado antes do objeto
+      estar funcional. </para>
+
+      <para>Como aplicaríamos este padrão no código com jQuery? Vamos dizer
+      que nós temos este código escrito no estilo tradicional do jQuery:</para>
+
+      <programlisting>// carrega algum conteúdo ao clicar num item da lista
+// utilizando o ID do item da lista e esconde o conteúdo
+// em itens de lista similares
+$(document).ready(function() {
+  $('#myFeature li')
+    .append('&lt;div/&gt;')
+    .click(function() {
+      var $this = $(this);
+      var $div = $this.find('div');
+      $div.load('foo.php?item=' +
+        $this.attr('id'), 
+        function() {
+          $div.show();
+          $this.siblings()
+            .find('div').hide();
+        }
+      );
+    });
+});
+</programlisting>
+
+      <para>Se isso for estender nossa aplicação, deixar como está pode ser
+      legal. Por outro lado, se esse for um pedaço de uma aplicação maior,
+      nós temos que manter esta funcionalidade separada da funcionalidade
+      não relacionada. Talvez nós ainda queiramos mover a URL para fora do 
+      código e dentro de uma área de configuração. Por último, nós talvez
+      precisaremos quebrar o encadeamento de métodos para ficar mais fácil
+      modificar pedaços de funcionalidade depois. </para>
+
+      <example>
+        <title>Usando um literal de objeto numa funcionalidade do jQuery</title>
+
+        <programlisting>var myFeature = {
+    init : function(settings) {
+        myFeature.config = {
+            $items : $('#myFeature li'),
+            $container : $('&lt;div class="container"&gt;&lt;/div&gt;'),
+            urlBase : '/foo.php?item='
+        };
+
+        // permite a sobreposição da configuração padrão
+        $.extend(myFeature.config, settings);
+
+        myFeature.setup();        
+    },
+
+    setup : function() {
+        myFeature.config.$items
+            .each(myFeature.createContainer)
+            .click(myFeature.showItem);
+    },
+
+    createContainer : function() {
+        var $i = $(this),
+            $c = myFeature.config.$container.clone()
+                     .appendTo($i);
+
+        $i.data('container', $c);
+    },
+    
+    buildUrl : function() {
+        return myFeature.config.urlBase + 
+               myFeature.$currentItem.attr('id');
+    },
+    
+    showItem : function() {
+        var myFeature.$currentItem = $(this);
+        myFeature.getContent(myFeature.showContent);
+    },
+    
+    getContent : function(callback) {
+        var url = myFeature.buildUrl();
+        myFeature.$currentItem
+            .data('container').load(url, callback);
+    },
+    
+    showContent : function() {
+        myFeature.$currentItem
+            .data('container').show();
+        myFeature.hideContent();
+    },
+    
+    hideContent : function() {
+        myFeature.$currentItem.siblings()
+            .each(function() { 
+                $(this).data('container').hide(); 
+            });
+    }
+};
+
+$(document).ready(myFeature.init);</programlisting>
+      </example>
+
+      <para>A primeira coisa que você irá perceber é que esta abordagem 
+      é obviamente muito maior que a original - novamente, se isso for 
+      estender nossa aplicação, o uso do literal objeto não irá fazer 
+      sentido algum. Embora assumindo que não vai estender nossa aplicação,
+      nós ganhamos várias coisas:</para>
+
+      <itemizedlist>
+        <listitem>
+          <para>Nós quebramos nossas funcionalidaes em métodos pequenos;
+          no futuro, se nós precisarmos mudar como o conteúdo é mostrado,
+          é claro onde nós iremos mudar. No código original, este passo é
+          muito mais difícil para se localizar.</para>
+        </listitem>
+        
+        <listitem>
+            Nós eliminamos o uso de funções anônimas.
+        </listitem>        
+        
+        <listitem>
+          <para>Nós movemos as opções de configuração para fora do 
+          corpo do código e colocamos em uma localização central.</para>
+        </listitem>
+
+        <listitem>
+          <para>Nós eliminamos as restrições do encadeamento, fazendo o
+          código mais refatorável, modificável e rearranjável.</para>
+        </listitem>
+      </itemizedlist>
+      
+      <para>Para funcionalidades não triviais, literais de objeto são uma 
+      clara melhora sobre o longo pedaço de código dentro do bloco 
+      $(document).ready(), de forma nos leva a pensar sobre pedaços de 
+      funcionalidade. Entretanto, eles não são muito mais avançados do
+      que ter um monte de declarações de funções dentro do bloco 
+      $(document).ready(). </para>
+    </section>
+
+    <section>
+      <title>O Module Pattern</title>
+
+      <para>O module pattern supera algumas das limitações do literal objeto,
+      oferecendo privacidade para variáveis e funções enquanto expõe uma API
+      pública se assim for necessário.</para>
+
+      <example>
+        <title>O module pattern</title>
+
+        <programlisting>var featureCreator = function() {
+    var privateThing = 'segredo',
+        publicThing = 'não é segredo',
+
+        changePrivateThing = function() {
+            privateThing = 'super secreto';
+        },
+
+        sayPrivateThing = function() {
+            console.log(privateThing);
+            changePrivateThing();
+        };
+
+    return {
+        publicThing : publicThing,
+        sayPrivateThing : sayPrivateThing
+    }
+};
+
+var feature = featureCreator();
+feature.publicThing; // 'não é segredo'
+feature.sayPrivateThing(); 
+// loga 'segredo' e muda o valor de
+// privateThing</programlisting>
+      </example>
+
+      <para>No exemplo acima, nós criamos uma função featureCreator que
+      retorna um objeto. Dentro da função, nós definimos algumas variáveis.
+      Pelo fato das variáveis estarem definidas dentro da função, nós não 
+      temos acesso à ela fora da função, a não ser que nós coloquemos  no
+      objeto de retorno. Isto significa que nenhum código externo da função
+      tem acesso à variável privateThing ou a função changePrivateThing.
+      Entretando, sayPrivateThing tem acesso a privateThing e changePrivateThing,
+      por causa que ambas foram definidas no mesmo escopo de sayPrivateThing.</para>
+
+      <para>Este padrão é poderoso pois, da mesma forma que você pode obter 
+      os nomes de variáveis, ele pode dar a você variáveis privadas e funções
+      enquanto expõe uma API limitada consistindo das propriedades retornadas
+      dos objetos e métodos.</para>
+
+      <para>Abaixo temos uma versão revisada do exemplo anterior, mostrando
+      como poderíamos criar a mesma funcionalidade utilizando o module pattern
+      e somente expondo um método público do módulo,
+      <code>showItemByIndex()</code>.</para>
+
+      <example>
+        <title>Usando o module patterns numa funcionalidade do jQuery</title>
+
+        <programlisting>$(document).ready(function() {
+    var myFeature = (function() {
+        
+        var $items = $('#myFeature li'),
+            $container = $('&lt;div class="container"&gt;&lt;/div&gt;'),
+            $currentItem,
+
+            urlBase = '/foo.php?item=',
+            
+            createContainer = function() {
+                var $i = $(this),
+                    $c = $container.clone().appendTo($i);
+
+                $i.data('container', $c);
+            },
+            
+            buildUrl = function() {
+                return urlBase + $currentItem.attr('id');
+            },
+            
+            showItem = function() {
+                var $currentItem = $(this);
+                getContent(showContent);
+            },
+            
+            showItemByIndex = function(idx) {
+                $.proxy(showItem, $items.get(idx));
+            },
+            
+            getContent = function(callback) {
+                $currentItem.data('container').load(buildUrl(), callback);
+            },
+            
+            showContent = function() {
+                $currentItem.data('container').show();
+                hideContent();
+            },
+            
+            hideContent = function() {
+                $currentItem.siblings()
+                    .each(function() { 
+                        $(this).data('container').hide(); 
+                });
+            };
+
+        config.$items
+            .each(createContainer)
+            .click(showItem);
+            
+        return { showItemByIndex : showItemByIndex };
+    })();
+    
+    myFeature.showItemByIndex(0);
+});</programlisting>
+      </example>
+    </section>
+  </section>
+
+  <section>
+    <title>Gerenciando dependências</title>
+
+    <note>
+      <para>Esta seção é fortemente baseada na excelente documentação do RequireJS
+      disponível em <link
+      xlink:href="http://requirejs.org/docs/jquery.html">http://requirejs.org/docs/jquery.html</link>,
+      e usada com permissão do autor do RequireJS, James Burke.</para>
+    </note>
+
+    <para>Quando um projeto alcança um determinado tamanho, gerenciar módulos
+    de scripts começa a ficar complicado. Você precisa ter certeza da seqüência
+    correta dos scripts e você começa a pensar seriamente em combinar scripts em
+    um único arquivo, para que somente uma ou um número pequeno de requisições 
+    sejam feitas para carregar os scripts. Você pode também carregar código assim
+    que necessário, depois que a página carregar. </para>
+
+    <para>O RequireJS é uma ferramenta para gerenciamento de dependências feita pelo
+    James Burke e pode lhe ajudar a gerenciar módulos de scripts, carregá-los na
+    ordem correta e tornar fácil a combinação de scripts mais tarde através de
+    uma ferramenta própria de otimização, sem necessidade de alterar seu código
+    de marcação. Ele também lhe fornece um meio fácil de carregar os scripts depois
+    da página ter carregado, permitindo que você distribua o tamanho do download
+    através do tempo. </para>
+
+    <para>O RequireJS tem um sistema de módulos que permite que você defina
+    módulos com escopo bem definido, mas você não precisa seguir o sistema 
+    para obter os benefícios do gerenciamento de dependências e otimizações 
+    em tempo de build. Com o tempo, se você começar a criar código mais 
+    modular que precisa ser reutilizado em algumas outras partes, o formato de
+    módulo do RequireJS torna fácil escrever código encapsulado que pode ser 
+    carregado sob demanda. Ele pode crescer com sua aplicação, particularmente 
+    se você deseja incorporar strings de internacionalização (i18n), para que 
+    seu projeto funcione em línguas diferentes, ou carregar algumas strings HTML 
+    e ter certeza que estas strings estão disponíveis antes de executar o código,
+    ou mesmo usar servicos JSONP como dependências.</para>
+
+    <section>
+      <title>Obtendo o RequireJS</title>
+
+      <para>A forma mais fácil de usar o RequireJS com jQuery é  <link
+      xlink:href="http://requirejs.org/docs/download.html">baixando um build do
+      jQuery que já tem o RequireJS embutido</link>. Este build exclui porções 
+      do RequireJS que duplicam funcionalidades do jQuery. Você também pode achar
+      útil baixar <link
+      xlink:href="http://requirejs.org/docs/release/0.11.0/jquery-require-sample.zip">um
+      projeto jQuery de amostra que utiliza o RequireJS</link>.</para>
+    </section>
+
+    <section>
+      <title>Utilizando o RequireJS com jQuery</title>
+
+      <para>Utilizar o RequireJS na sua página é simples: inclua o jQuery
+      que tenha o RequireJS embutido e depois faça a requisição dos arquivos
+      da sua aplicação. O exemplo a seguir assume que o jQuery e seus outros
+      scripts estejam todos no diretório <filename>scripts/</filename>.</para>
+
+      <example>
+        <title>Utilizando o RequireJS: Um exemplo simples</title>
+
+        <programlisting>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+    &lt;head&gt;
+        &lt;title&gt;jQuery+RequireJS Sample Page&lt;/title&gt;
+        &lt;script src="scripts/require-jquery.js"&gt;&lt;/script&gt;
+        &lt;script&gt;require(["app"]);&lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+        &lt;h1&gt;jQuery+RequireJS Sample Page&lt;/h1&gt;
+    &lt;/body&gt;
+&lt;/html&gt;</programlisting>
+      </example>
+
+      <para>A chamada <code>require(["app"])</code> fala para o RequireJS carregar
+      o arquivo <filename>scripts/app.js</filename>. O RequireJS irá carregar
+      todas as dependências que é passada para o <code>require()</code> sem a
+      extensão <filename>.js</filename> do mesmo diretório do
+      <filename>require-jquery.js</filename>, apesar que isto pode ser configurado
+      para se comportar de forma diferente. Se você se sentir mais confortável ao
+      especificar o caminho completo, você pode fazer o seguinte:</para>
+
+      <programlisting>&lt;script&gt;require(["scripts/app.js"]);&lt;/script&gt;</programlisting>
+
+      <para>O que há em <filename>app.js</filename>? Outra chamada para o
+      <filename>require.js</filename> carregar todos os scripts que você
+      precisa e todo trabalho inicial que você quer para a página. Neste
+      exemplo, o script <filename>app.js</filename> carrega dois plugins,
+      <filename>jquery.alpha.js</filename> e
+      <filename>jquery.beta.js</filename> (não é o nome real dos plugins,
+      somente um exemplo). Os plugins devem estar no mesmo diretório do
+      <filename>require-jquery.js</filename>: </para>
+
+      <example>
+        <title>Um simples arquivo JavaScript com dependências</title>
+
+        <programlisting>require(["jquery.alpha", "jquery.beta"], function() {
+    //os plugins jquery.alpha.js e jquery.beta.js foram carregados.
+    $(function() {
+        $('body').alpha().beta();
+    });
+});</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Criando módulos reusáveis com RequireJS</title>
+
+      <para>RequireJS torna fácil a definição de módulos reusáveis via
+      <code>require.def()</code>. Um módulo RequireJS pode ter dependências que
+      podem ser usadas para definir um módulo e um módulo RequireJS pode retornar
+      um valor - um objeto, uma função, o que for - que pode ser consumido por
+      outros módulos.</para>
+
+      <para>Se seu módulo não tiver nenhuma dependência, então simplesmente 
+      especifique o nome do módulo como primeiro argumento do  <code>require.def()</code>. 
+      O segundo argumento é somente um literal objeto que define as propriedades
+      do módulo. Por exemplo: </para>
+
+      <example>
+        <title>Definindo um módulo do RequireJS que não tem dependências</title>
+
+        <programlisting>require.def("my/simpleshirt",
+    {
+        color: "black",
+        size: "unisize"
+    }
+);</programlisting>
+
+        <para>Este exemplo seria melhor armazenado no arquivo my/simpleshirt.js.
+        </para>
+
+        <para>Se seu módulo possui dependências, você pode especificá-las como
+        segundo argumento para <code>require.def()</code> (como um array) e então
+        passar uma função como terceiro argumento. A função será chamada para definir
+        o módulo quando todas as dependências tiverem sido carregadas.
+        A função recebe os valores retornados pelas dependências como seus argumentos.
+        (na mesma ordem que elas são requeridas no array), e a função deve retornar 
+        um objeto que define o módulo.</para>
+
+        <example>
+          <title>Definindo um módulo do RequireJS com dependências</title>
+
+          <programlisting>require.def("my/shirt",
+    ["my/cart", "my/inventory"],
+    function(cart, inventory) {
+        //retorna um objeto para definir o módulo "my/shirt".
+        return {
+            color: "blue",
+            size: "large"
+            addToCart: function() {
+                inventory.decrement(this);
+                cart.add(this);
+            }
+        }
+    }
+);</programlisting>
+        </example>
+
+        <para>Neste exemplo, um módulo  my/shirt é criado. Ele depende de 
+        my/cart e my/inventory. No disco, os arquivos são estruturados assim:
+        </para>
+
+        <programlisting>my/cart.js
+my/inventory.js
+my/shirt.js</programlisting>
+
+        <para>A função que define <code>my/shirt</code> não é chamada até 
+        que os módulos <code>my/cart</code> e <code>my/inventory</code> sejam
+        carregados, e a função recebe os módulos como argumentos
+        <code>cart</code> e <code>inventory</code>. A ordem dos argumentos
+        da função precisam combinar com a ordem em que as dependências foram 
+        requiridas no array de dependências. O objeto retornado pela chamada da
+        função define o módulo <code>my/shirt</code>. Por definir os módulos
+        dessa forma, <code>my/shirt</code> não existe como um objeto global.
+        Módulos que definem globais são explicitamente desencorajados, então
+        múltiplas versões de um módulo podem existir na página ao mesmo tempo.</para>
+
+        <para>Módulos não precisam retornar objetos; qualquer retorno válido
+        a partir de uma função é permitido.</para>
+
+        <example>
+          <title>Definindo um módulo do RequireJS que retorna uma função</title>
+
+          <programlisting>require.def("my/title",
+    ["my/dependency1", "my/dependency2"],
+    function(dep1, dep2) {
+        //retorna uma função para definir "my/title". Ele obtém ou muda
+        //o título da janela.
+        return function(title) {
+            return title ? (window.title = title) : window.title;
+        }
+    }
+);</programlisting>
+        </example>
+
+        <para>Somente um módulo deve ser requerido por arquivo JavaScript.</para>
+      </example>
+    </section>
+
+    <section>
+      <title>Otimizando seu código: A ferramenta de build do RequireJS</title>
+
+      <para>Uma vez que você incorporou o RequireJS para gerenciamento de dependência,
+      sua página está configurada para ser otimizada bem facilmente. Baixe o código fonte
+      do RequireJS e coloque onde você quiser, preferencialmente em um lugar fora
+      da sua área de desenvolvimento. Para os propósitos deste exemplo, o fonte
+      do RequireJS é colocado num diretório irmão do <filename>webapp</filename>, que 
+      contém a página HTML e o diretório de scripts com todos os scripts. Estrutura
+      completa do diretório:</para>
+
+      <programlisting>requirejs/ (utilizado pelas ferramentas de build)
+webapp/app.html
+webapp/scripts/app.js
+webapp/scripts/require-jquery.js
+webapp/scripts/jquery.alpha.js
+webapp/scripts/jquery.beta.js</programlisting>
+
+      <para>Então, nos diretórios de scripts que tem o
+      <filename>require-jquery.js</filename> e app.js, crie um arquivo chamado
+      app.build.js com o seguinte conteúdo: </para>
+
+      <example>
+        <title>Um arquivo de configuração de build do RequireJS</title>
+
+        <programlisting>{
+    appDir: "../",
+    baseUrl: "scripts/",
+    dir: "../../webapp-build",
+    //Comente a linha de otimização (optimize) se você quer 
+    //o código minificado pelo Compilador Closure Compiler utilizando
+    //o modo de otimização "simple"
+    optimize: "none",
+
+    modules: [
+        {
+            name: "app"
+        }
+    ]
+}</programlisting>
+      </example>
+
+      <para>Para usar a ferramenta de build, você precisa do Java 6 instalado. O
+      Compilador Closure é usado para o passo de minificação do JavaScript 
+      (se <code>optimize:
+      "none"</code> estiver comentado), e requer o Java 6. </para>
+
+      <para>Para iniciar o buid, vá no diretório webapp/scripts, e execute o
+      seguinte comando: </para>
+
+      <programlisting># sistemas não-windows
+../../requirejs/build/build.sh app.build.js
+
+# sistemas windows
+..\..\requirejs\build\build.bat app.build.js</programlisting>
+
+      <para>Agora, no diretório webapp-build, <filename>app.js</filename>
+      terá o conteúdo de <filename>app.js</filename>,
+      <filename>jquery.alpha.js</filename> e
+      <filename>jquery.beta.js</filename> numa só linha. Então, se você carregar
+      o arquivo <filename>app.html</filename> no diretório
+      <filename>webapp-build</filename>, você não deverá ver nenhuma requisição 
+      de rede para <filename>jquery.alpha.js</filename> e
+      <filename>jquery.beta.js</filename>. </para>
+    </section>
+  </section>
+
+  <section>
+    <title>Exercícios</title>
+
+    <section>
+      <title>Crie um módulo Portlet</title>
+
+      <para>Abra o arquivo <filename>/exercises/portlets.html</filename> em
+      seu navegador. Use o arquivo
+      <filename>/exercises/js/portlets.js</filename>. Sua tarefa é criar um
+      função criadora de portlet que utilize o module pattern, fazendo que o
+      seguinte código funcione:</para>
+
+      <programlisting>var myPortlet = Portlet({
+    title : 'Curry',
+    source : 'data/html/curry.html',
+    initialState : 'aberto' // ou 'fechado'
+});
+
+myPortlet.$element.appendTo('body');</programlisting>
+
+      <para>Cada portlet deve ser uma div com um título, uma área de conteúdo,
+      um botão para abrir/fechar o portlet, um botão para remover o portlet,
+      e um botão para atualizar o portlet. O portlet retornado pela função Portlet
+      deve ter a seguinte API pública:</para>
+
+      <programlisting>myPortlet.open(); // força o estado aberto
+myPortlet.close(); // força o estado fechado
+myPortlet.toggle(); // inverte o estado aberto/fechado
+myPortlet.refresh(); // atualiza o conteúdo
+myPortlet.destroy(); // remove o portlet da página
+myPortlet.setSource('data/html/onions.html'); 
+// muda a fonte</programlisting>
+    </section>
+  </section>
+</chapter>

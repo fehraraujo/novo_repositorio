@@ -1,0 +1,1190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>O Básico de JavaScript</title>
+
+  <section>
+    <title>Introdução</title>    
+
+    <para>
+      jQuery é construído sobre JavaScript, uma linguagem rica e expressiva
+      por si só. Esta sessão cobre os conceitos básicos de JavaScript, assim
+      como algumas pegadinhas que aparecem com freqüência para pessoas
+      que ainda não usaram JavaScript. Por enquanto, para pessoas sem experiência
+      em programação, até mesmo para aquelas que já programam em outras
+      linguagens, podem se beneficiar ao aprender um pouco sobre
+      algumas particularidades de JavaScript.
+    </para>
+
+    <para>Se você está interessado em aprender mais sobre a linguagem JavaScript,
+    eu recomento fortemente o livro <citetitle>JavaScript: The Good Parts</citetitle> do
+    Douglas Crockford.</para>
+  </section>
+
+  <section>
+    <title>O Básico de sintaxe</title>
+
+    <para>Entendendo declarações, nomes de variáveis, espaço, e outras sintaxes
+    básicas do JavaScript.</para>
+
+    <example id="javascript-basics.examples.variable-declaration">
+      <title>Uma simples declaração de variável</title>
+
+      <programlisting>var foo = 'ola mundo';</programlisting>
+    </example>
+
+    <example>
+      <title>Espaços em branco não interferem fora das aspas.</title>
+
+      <para><programlisting>var foo =         'olá mundo';</programlisting></para>
+    </example>
+
+    <example>
+      <title>Parênteses indicam precedência</title>
+
+      <programlisting>2 * 3 + 5;    // retorna 11; multiplicação acontece antes
+2 * (3 + 5);  // retorna 16; adição acontece primeiro</programlisting>
+    </example>
+
+    <example>
+      <title>Tabulação melhora a leitura, mas não tem significado especial</title>
+
+      <para><programlisting>var foo = function() {
+    console.log('olá');
+};</programlisting></para>
+    </example>
+  </section>
+
+  <section>
+    <title>Operadores</title>
+
+    <section>
+      <title>Operadores Básicos</title>
+
+      <para>Operadores básicos permitem que você manipule valores.</para>
+
+      <para><example>
+          <title>Concatenação</title>
+
+          <programlisting>var foo = 'olá';
+var bar = 'mundo';
+
+console.log(foo + ' ' + bar); // 'olá mundo'</programlisting>
+        </example><example>
+          <title>Multiplicação e divisão</title>
+
+          <para><programlisting>2 * 3;
+2 / 3;</programlisting></para>
+        </example><example>
+          <title>Incrementando e decrementando</title>
+
+          <para><programlisting>var i = 1;
+
+var j = ++i;  // pré-incremento:  j é igual a  2; i é igual a 2
+var k = i++;  // pós-incremento: k é igual a 2; i é igual a 3</programlisting></para>
+        </example></para>
+    </section>
+
+    <section>
+      <title>Operações sobre números &amp; Strings</title>
+
+      <para>Em JavaScript, números e strings ocasionalmente irão se comportar 
+      de formas inesperadas.</para>
+
+      <example id="javascript-basics.examples.addition-concatenation">
+        <title>Adição vs. Concatenação</title>
+
+        <para>
+          <programlisting>var foo = 1;
+var bar = '2';
+
+console.log(foo + bar);  // 12. uh oh</programlisting>
+        </para>
+      </example>
+
+      <example id="javascript-basics.examples.force-number">
+        <title>Forçando uma string atuar como um número</title>
+
+        <programlisting>var foo = 1;
+var bar = '2';
+
+// converte string para numero
+console.log(foo + Number(bar));</programlisting>
+      </example>
+
+      <para>O construtor Number, quando chamado como função (como no exemplo
+      acima), terá o efeito de mudar seu argumento para um número. Você pode
+      também usar o operador unário de adição, que faz a mesma coisa:</para>
+
+      <example id="javascript-basics.examples.force-number-unary">
+        <title>Forçando uma string a atuar como um número (usando o operador
+        unário de adição)</title>
+
+        <programlisting>
+console.log(foo + +bar);</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Operadores lógicos</title>
+
+      <para>Operadores lógicos permitem que você teste uma série de operadores 
+      usando as operações lógicas AND e OR.</para>
+
+      <para><example id="javascript-basics.examples.and-or">
+          <title>Os operadores lógicos AND e OR</title>
+
+          <programlisting>var foo = 1;
+var bar = 0;
+var baz = 2;
+
+foo || bar;   // retorna 1, que é verdadeiro
+bar || foo;   // retorna 1, que é verdadeiro
+
+foo &amp;&amp; bar;   // retorna 0, que é falso
+foo &amp;&amp; baz;   // retorna 2, que é verdadeiro
+baz &amp;&amp; foo;   // retorna 1, que é verdadeiro</programlisting>
+        </example></para>
+
+      <para>Apesar de não estar claro pelo exemplo, o operador <code>||</code>
+      retorna o valor do primeiro operador verdadeiro, ou, em casos em que nenhum
+      operador seja verdadeiro, ele irá retornar o último dos operandos. O operador
+      <code>&amp;&amp;</code> retorna o valor do primeiro operando falso, ou o valor
+      do último operador se ambos operadores forem verdadeiros.</para>
+
+      <para>Tenha certeza de consultar <xref
+      linkend="javascript-basics.sections.truthy-falsy" /> para maiores detalhes
+      sobre quais valores são avaliados como <code>true</code> e quais são avaliados <!-- Qual a melhor tradução para evaluate? -->
+      como  <code>false</code>.</para>
+      
+      <note>
+        <para>Algumas vezes, você verá alguns desenvolvedores usando estes
+        operadores lógicos para controle de fluxo ao invés de utilizar o <code>if</code>. 
+        Por exemplo:</para>
+
+        <programlisting>// faz alguma coisa com foo se foo for verdadeiro
+foo &amp;&amp; doSomething(foo);
+
+// seta bar para baz se baz é verdadeiro;
+// senão for verdadeiro, seta-o para retornar
+// o valor de createBar()
+var bar = baz || createBar();</programlisting>
+
+        <para>Este estilo é elegante e agradevelmente curto; por isso, pode 
+        ser difícil ler, especialmente por iniciantes. Eu o mostro aqui para
+        que você possa reconhecê-lo no código que você lê, mas eu não recomendo
+        o uso até que você esteja extremamente confortável com o que isto 
+        significa e como você espera que se comporte.</para>
+      </note>
+    </section>
+
+    <section>
+      <title>Operadores de comparação</title>
+
+      <para>Operadores de comparação permite testar quando valores são
+      equivalentes ou quando são idênticos.</para>
+
+      <example>
+        <title>Operadores de comparação</title>
+
+        <para><programlisting>var foo = 1;
+var bar = 0;
+var baz = '1';
+var bim = 2;
+
+foo == bar;   // retorna false
+foo != bar;   // retorna true
+foo == baz;   <emphasis role="bold">// retorna true; cuidado!</emphasis>
+
+foo === baz;             // retorna false
+foo !== baz;             // retorna true
+foo === parseInt(baz);   // retorna true
+
+foo &gt; bim;    // retorna false
+bim &gt; baz;    // retorna true
+foo &lt;= baz;   // retorna true</programlisting></para>
+      </example>
+    </section>
+  </section>
+
+  <section>
+    <title>Código condicional</title>
+
+    <para>Algumas vezes você só irá querer executar um bloco de código sob
+    certas condições. Controle de fluxo - através dos blocos <code>if</code> e <code>else</code>
+     - permite que você execute uma parte do código em certas condições.</para>
+
+    <example>
+      <title>Controle de fluxo</title>
+
+      <programlisting>var foo = true;
+var bar = false;
+
+if (bar) {
+    // este código nunca será executado
+    console.log('hello!');
+}
+
+if (bar) {
+    // este código não irá executar
+} else {
+    if (foo) {
+        // este código irá executar
+        
+    } else {
+        // este código poderá ser executado se foo e bar forem ambos falsos.
+    }
+}</programlisting>
+    </example>
+
+    <note>
+      <para>As chaves não são estritamente necessárias quando você tem blocos 
+      <code>if</code> com uma só linha, porém, se forem usados consistentemente,
+      mesmo que não sejam estritamente requeridos, eles podem fazer seu código
+      ficar mais legível.</para>
+    </note>
+
+    <para>Esteja atento para não definir funções com o mesmo nome várias vezes 
+    dentro de blocos de código <code>if</code>/<code>else</code>, senão pode
+    haver resultados inesperados.</para>
+
+    <section id="javascript-basics.sections.truthy-falsy">
+      <title>Coisas Verdadeiras e Falsas</title>
+
+      <para>De forma a usar o controle de fluxo com sucesso, é importante
+      entender quais tipos de valores são "verdadeiros" e quais tipos de 
+      valores são "falsos". Algumas vezes, valores que parecem ser avaliados
+      de uma forma, são avaliados de outra.</para>
+
+      <example>
+        <title>Valores que são avaliados como <code>true</code></title>
+
+        <programlisting>'0'; 
+'qualquer string';
+[];  // um array vazio
+{};  // um objeto vazio
+1;   // qualquer número diferente de zero</programlisting>
+      </example>
+
+      <example>
+        <title>Valores que são avaliados como <code>false</code></title>
+
+        <programlisting>0;
+'';  // uma string vazia
+NaN; // Variável "not-a-number" do JavaScript
+null;
+undefined;  // seja cuidadoso -- undefined pode ser redefinido!</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Associação Condicional de Variáveis Com o Operador Ternário</title>
+
+      <para>Algumas vezes você precisará colocar um valor numa variável dependendo
+      de uma condição. Você poderia usar uma declaração <code>if</code>/<code>else</code>,
+      mas em muitos casos, o operador ternário é mais conveniente. <termdef> O
+      <firstterm>operador ternário</firstterm> testa uma condição; se a condição
+      for verdadeira, ele retorna um valor correto, senão retorna um valor
+      diferente.</termdef></para>
+
+      <example>
+        <title>O operador ternário</title>
+
+        <programlisting>// seta foo pra 1 se bar for verdadeiro;
+// senão, seta foo para 0
+var foo = bar ? 1 : 0;</programlisting>
+      </example>
+
+      <para>Enquanto o operador ternário pode ser usado sem associação do valor de retorno
+      para uma variável, isto é geralmente desencorajado.</para>
+    </section>
+
+    <section>
+      <title>Declaração Switch</title>
+
+      <para>Ao invés de usar uma série de blocos if/else if/else, algumas vezes
+      pode ser útil usar a declaração switch.
+      <termdef><firstterm>Declarações Switch</firstterm> olham o valor da variável
+      ou expressão e executa blocos de código diferentes dependendo do valor.</termdef></para>
+
+      <example>
+        <title>Uma declaração switch</title>
+
+        <programlisting>switch (foo) {
+
+    case 'bar':
+        alert('o valor é bar -- yay!');
+    break;
+
+    case 'baz':
+        alert('boo baz :(');
+    break;
+
+    default:
+        alert('todo o resto está ok');
+    break;
+
+}</programlisting>
+      </example>
+
+      <para>As declarações Switch de alguma forma favorecem o JavaScript,
+      pois frequentemente o mesmo comportamento pode ser obtido através da 
+      criação de um objeto que tem um maior potencial para reuso, teste,
+      etc. Por exemplo:</para>
+
+      <programlisting>var stuffToDo = {
+    'bar' : function() { 
+        alert('o valor é bar -- yay!');
+    },
+
+    'baz' : function() { 
+        alert('boo baz :(');
+    },
+
+    'default' : function() { 
+        alert('todo o resto está ok');
+    }
+};
+
+if (stuffToDo[foo]) {
+    stuffToDo[foo]();
+} else {
+    stuffToDo['default']();
+}</programlisting>
+
+      <para>Nós daremos uma olhada mais profunda em objetos mais
+      a frente neste capítulo.</para>
+    </section>
+  </section>
+
+  <section>
+    <title>Laços</title>
+
+    <para>Laços permitem que você execute um bloco de código por um certo número de vezes.</para>
+
+    <para><example id="javascript-basics.examples.loops">
+        <title>Laços</title>
+
+        <programlisting>// loga 'tentativa 0', 'tentativa 1', ..., 'tentativa 4'
+for (var i=0; i&lt;5; i++) {
+    console.log('tentativa ' + i);
+}</programlisting>
+      </example><remark>Note que em <xref
+    linkend="javascript-basics.examples.loops" /> mesmo que usemos a palavra
+    chave <token>var</token> antes do nome da variável  <varname>i</varname>,
+    o escopo da variável  <varname>i</varname> não é alterado para o bloco do laço.
+    Nós iremos discutir sobre escopo com mais profundidade mais a frente neste capítulo.</remark></para>
+
+    <section>
+      <title>O laço for</title>
+
+      <para>O laço <code>for</code> é constituído de quatro declarações e possui a 
+      seguinte estrutura:</para>
+
+      <programlisting>for ([inicialização]; [condição]; [incremento])
+ [corpoDoLaço]</programlisting>
+
+      <para>A declaração <emphasis>inicialização</emphasis> é executada somente
+      uma vez, antes do loop iniciar. Ela lhe dá uma oportunidade de preparar
+      ou declarar qualquer variável.</para>
+
+      <para>A declaração <emphasis>condição</emphasis> é executada antes de 
+      cada iteração, e o seu valor de retorno decide se o loop continua ou
+      não. Se a declaração condicional for interpretada como um valor falso,
+      o laço para de ser executado.</para>
+
+      <para>A declaração <emphasis>incremento</emphasis> é executada no fim
+      de cada iteração e lhe dá a oportunidade de mudar o estado de variáveis
+      importantes. Tipicamente, isso irá envolver o incremento ou decremento
+      de um contador e assim fazer com que o loop sempre chegue ao seu fim.</para>
+
+      <para>A declaração <emphasis>corpoDoLaço</emphasis> é o que é executado
+      em cada iteração. Ele pode conter o que você quiser. Tipicamente, você 
+      terá múltiplas declarações que precisam ser executadas e portanto você
+      irá colocá-las dentro de um bloco de código (<code>{...}</code>).</para>
+
+      <para>Este é um uso típico para o laço <code>for</code>:</para>
+
+      <example>
+        <title>Um laço <code>for</code> típico</title>
+
+        <programlisting>for (var i = 0, limit = 100; i &lt; limit; i++) {
+    // Este bloco será executado 100 vezes
+    console.log('Estou em ' + i);
+    // Nota: o último log será: "Estou em 99"
+}</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>O laço while</title>
+
+      <para>O laço <code>while</code> é similar a uma declação <code>if</code>, 
+      exceto que seu corpo continuará executando até que a condição seja interpretada
+      como falso.</para>
+
+      <programlisting>while ([condição]) [corpoDoLaço]</programlisting>
+
+      <para>Este é um laço <code>while</code> típico:</para>
+
+      <example>
+        <title>Um laço <code>while</code> típico</title>
+
+        <programlisting>var i = 0;
+while (i &lt; 100) {
+
+    // Este bloco será executado 100 vezes
+    console.log('Estou em ' + i);
+    
+    i++; // incrementa i
+    
+}</programlisting>
+      </example>
+
+      <para>Você irá perceber que nós temos que incrementar o contador dentro do
+      corpo do laço. É possível combinar o incremento e a condição, desse jeito:</para>
+
+      <example>
+        <title>Um laço <code>while</code> com uma condição e incremento combinado</title>
+
+        <programlisting>var i = -1;
+while (++i &lt; 100) {
+    // Este bloco será executado 100 vezes
+    console.log('Estou em ' + i);
+}</programlisting>
+      </example>
+
+      <para>Perceba que nós estamos iniciando em <code>-1</code> e usando o incremento
+      prefixo (<code>++i</code>).</para>
+    </section>
+
+    <section>
+      <title>O laço do-while</title>
+
+      <para>É quase a mesma coisa do laço <code>while</code>, exceto
+      pelo fato que o corpo do laço é executado pelo menos uma vez 
+      antes da condição ser testada.</para>
+
+      <programlisting>do [corpoDoLaço] while ([condição])</programlisting>
+
+      <para>Este é um exemplo de código com <code>do-while</code>:</para>
+
+      <example>
+        <title>Um laço <code>do-while</code></title>
+
+        <programlisting>do {
+
+    // Mesmo que a condição seja interpretada como false
+    // este corpo do laço ainda será executado uma vez
+    
+    alert('Olá!');
+    
+} while (false);</programlisting>
+      </example>
+
+      <para>Estes tipos de laços são relativamente raros, pois poucas
+      situações requerem um laço que execute cegamente um bloco de código
+      ao menos uma vez. Independentemente, é bom ficar sabendo disso.</para>
+    </section>
+
+    <section>
+      <title>Parando e continuando</title>
+
+      <para>Geralmente, um loop termina porque a declaração condicional não 
+          é interpretada como verdadeira, mas é possível parar um laço dentro 
+          do corpo do mesmo utilizando a declaração <code>break</code>. 
+      </para>
+
+      <example>
+        <title>Parando um laço</title>
+
+        <programlisting>for (var i = 0; i &lt; 10; i++) {
+    if (algumaCoisa) {
+        break;
+    }
+}</programlisting>
+      </example>
+
+      <para>Você também pode desejar continuar o laço sem executar o 
+      resto do seu corpo. Isso é feito usando a declaração <code>continue</code>.</para>
+
+      <example>
+        <title>Pulando para a próxima iteração de um loop</title>
+
+        <programlisting>for (var i = 0; i &lt; 10; i++) {
+    
+    if (algumaCoisa) {
+        continue;
+    }
+    
+    // A declaração seguinte somente será executada se 
+    // a condição 'algumaCoisa' for falsa
+    console.log('Cheguei até aqui');
+    
+}</programlisting>
+      </example>
+    </section>
+  </section>
+
+  <section>
+    <title>Palavras Reservadas</title>
+
+    <para>JavaScript possui um número de “palavras reservadas”, ou palavras 
+    que têm significado especial na linguagem. Você deve evitar usar estas
+    palavras em seu código, exceto quando você as usar com seu significado
+    desejado.</para>
+
+    <itemizedlist>
+      <listitem>
+        <para><code>break</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>case</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>catch</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>continue</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>default</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>delete</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>do</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>else</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>finally</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>for</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>function</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>if</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>in</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>instanceof</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>new</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>return</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>switch</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>this</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>throw</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>try</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>typeof</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>var</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>void</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>while</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>with</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>abstract</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>boolean</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>byte</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>char</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>class</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>const</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>debugger</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>double</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>enum</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>export</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>extends</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>final</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>float</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>goto</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>implements</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>import</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>int</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>interface</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>long</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>native</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>package</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>private</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>protected</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>public</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>short</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>static</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>super</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>synchronized</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>throws</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>transient</code></para>
+      </listitem>
+
+      <listitem>
+        <para><code>volatile</code></para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section>
+    <title>Arrays</title>
+
+    <para>Arrays são listas de valores indexadas por zero. Eles são uma forma
+    útil de armazenar um conjunto de itens relacionados do mesmo tipo (como strings),
+    apesar que na realidade, um array pode incluir múltiplos tipos de itens,
+    incluindo outros arrays.</para>
+
+    <example>
+      <title>Um array simples</title>
+
+      <programlisting>var meuArray = [ 'Olá', 'Mundo' ];</programlisting>
+    </example>
+
+    <example>
+      <title>Acessando os itens do array pelo índice</title>
+
+      <programlisting>var meuArray = [ 'ola', 'mundo', 'foo', 'bar' ];
+console.log(meuArray[3]);   // loga 'bar'</programlisting>
+    </example>
+
+    <example>
+      <title>Testando o tamanho de um array</title>
+
+      <programlisting>var meuArray = [ 'olá', 'mundo' ];
+console.log(meuArray.length);   // loga 2</programlisting>
+    </example>
+
+    <example id="javascript-basics.examples.change-array-value">
+      <title>Mudando o valor de um item do array</title>
+
+      <programlisting>var meuArray = [ 'olá', 'mundo' ];
+meuArray[1] = 'mudado';</programlisting>
+    </example>
+
+    <remark>Enquanto é possível mudar o valor de um item do array como mostrado
+    no <xref linkend="javascript-basics.examples.change-array-value" />, geralmente
+    não é recomendado.</remark>
+
+    <example>
+      <title>Adicionando elementos em um array</title>
+
+      <programlisting>var meuArray = [ 'olá', 'mundo' ];
+meuArray.push('novo');</programlisting>
+    </example>
+
+    <example>
+      <title>Trabalhando com arrays</title>
+
+      <programlisting>var meuArray = [ 'h', 'e', 'l', 'l', 'o' ];
+var minhaString = meuArray.join('');   // 'hello'
+var meuSplit = minhaString.split('');  // [ 'h', 'e', 'l', 'l', 'o' ]</programlisting>
+    </example>
+  </section>
+
+  <section>
+    <title>Objetos</title>
+
+    <para>Objetos contém um ou mais pares chave-valor. A porção chave pode 
+    ser qualquer string. A porção valor pode ser qualquer tipo de valor: um
+    número, uma string, um array, uma função ou até um outro objeto.</para>
+
+    <para><termdef>Quando um desses valores é uma função, é chamado de
+    <firstterm>método</firstterm> do objeto.</termdef> Senão, elas são chamadas
+    de propriedades.</para>
+
+    <para>Na prática, quase tudo em JavaScript é um objeto — arrays, funções
+    números e até strings - e todos eles possuem propriedades e métodos.</para>
+
+    <example>
+      <title>Criando um "literal objeto"</title>
+
+      <programlisting>var myObject = {
+    sayHello : function() {
+        console.log('olá');
+    },
+
+    myName : 'Rebecca'
+};
+
+myObject.sayHello();            // loga 'olá'
+console.log(myObject.myName);   // loga 'Rebecca'</programlisting>
+    </example>
+
+    <note>
+      <para>Ao criar literais objeto, você deve notar que a porção chave
+      de cada par chave-valor pode ser escrito como qualquer identificador
+      válido em JavaScript, uma string (entre aspas) ou um número:</para>
+
+      <programlisting>var myObject = {
+    validIdentifier: 123,
+    'some string': 456,
+    99999: 789
+};</programlisting>
+    </note>
+
+    <para>Literais objeto podem ser extremamente úteis para organização
+    de código; para mais informações leia <link
+    xlink:href="http://blog.rebeccamurphey.com/2009/10/15/using-objects-to-organize-your-code/">Using
+    Objects to Organize Your Code</link> de Rebecca Murphey.</para>
+  </section>
+
+  <section>
+    <title>Funções</title>
+
+    <para>Funções contêm blocos de código que precisam ser executados repetidamente.
+    As funções podem ter zero ou mais argumentos, e podem opcionalmente retornar
+    um valor.</para>
+
+    <para>Funções podem ser criadas em uma série de formas:</para>
+
+    <example>
+      <title>Declaração de Função</title>
+
+      <programlisting>function foo() { /* faz alguma coisa */ }</programlisting>
+    </example>
+
+    <example>
+      <title>Expressão de Função Nomeada</title>
+
+      <programlisting>var foo = function() { /* faz alguma coisa */ }</programlisting>
+    </example>
+
+    <remark>Eu prefiro a expressão de função nomeada para definir o nome da função
+    por algumas <link
+    xlink:href="http://yura.thinkweb2.com/named-function-expressions/">questões
+    técnicas</link>. Você provavelmente verá ambos os métodos usados em código
+    JavaScript de outros.</remark>
+
+    <section>
+      <title>Usando funções</title>
+
+      <example>
+        <title>Uma função simples</title>
+
+        <programlisting>var greet = function(person, greeting) {
+    var text = greeting + ', ' + person;
+    console.log(text);
+};
+
+
+greet('Rebecca', 'Olá');</programlisting>
+      </example>
+
+      <example>
+        <title>Uma função que retorna um valor</title>
+
+        <programlisting>var greet = function(person, greeting) {
+    var text = greeting + ', ' + person;
+    return text;
+};
+
+console.log(greet('Rebecca','Olá'));</programlisting>
+      </example>
+
+      <example>
+        <title>Uma função que retorna outra função</title>
+
+        <programlisting>var greet = function(person, greeting) {
+    var text = greeting + ', ' + person;
+    return function() { console.log(text); };
+};
+
+
+var greeting = greet('Rebecca', 'Olá');
+greeting();</programlisting>
+      </example>
+    </section>
+
+    <section xml:id="javascript-basics.sections.self-executing-functions">
+      <title>Funções anônimas autoexecutáveis</title>
+
+      <para>Um padrão comum em JavaScript é a função anônima autoexecutável.
+      Este padrão cria uma função e a executa imediatamente. Este padrão é
+      extremamente útil para casos onde você quer evitar poluir o namespace 
+      global com seu código -- nenhuma variável declarada dentro da função 
+      é visível fora dele.</para>
+
+      <example xml:id="javascript-basics.examples.self-executing">
+        <title>Uma função anônima auto-executável</title>
+
+        <programlisting>(function(){
+    var foo = 'Olá mundo';
+})();
+
+
+console.log(foo);   // undefined!</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Funções como argumento</title>
+
+      <para>Em JavaScript, funções são "cidadãos de primeira classe" -- eles
+      podem ser atribuídos a variáveis ou passados para outras funções como
+      argumentos. Passar funções como argumento é um idioma extremamente comum
+      em jQuery.</para>
+
+      <example>
+        <title>Passando uma função anônima como argumento</title>
+
+        <programlisting>var myFn = function(fn) {
+    var result = fn();
+    console.log(result);
+};
+
+myFn(function() { return 'olá mundo'; });   // loga 'olá mundo'</programlisting>
+      </example>
+
+      <example>
+        <title>Passando uma função nomeada como argumento</title>
+
+        <programlisting>var myFn = function(fn) {
+    var result = fn();
+    console.log(result);
+};
+
+var myOtherFn = function() {
+    return 'olá mundo';
+};
+
+myFn(myOtherFn);   // loga 'olá mundo'</programlisting>
+      </example>
+    </section>
+  </section>
+
+  <section>
+    <title>Testando Tipo</title>
+
+    <para>JavaScript oferece um meio de testar o "tipo" de uma variável.
+    Entretanto, o resultado pode ser confuso -- por exemplo, o tipo de um
+    Array é "objeto".</para>
+
+    <para>É uma prática comum usar o operador <code>typeof</code> ao
+    tentar determinar o tipo de um valor específico.</para>
+
+    <example>
+      <title>Testando o tipo de várias variáveis</title>
+
+      <programlisting>var myFunction = function() {
+    console.log('olá');
+};
+
+var myObject = {
+    foo : 'bar'
+};
+
+var myArray = [ 'a', 'b', 'c' ];
+
+var myString = 'olá';
+
+var myNumber = 3;
+
+typeof myFunction;   // retorna 'function'
+typeof myObject;     // retorna 'object'
+typeof myArray;      // <emphasis role="bold">retorna 'object' -- cuidado!</emphasis>
+typeof myString;     // retorna 'string';
+typeof myNumber;     // retorna 'number'
+
+typeof null;         // <emphasis role="bold">retorna 'object' -- cuidado!</emphasis>
+
+
+if (myArray.push &amp;&amp; myArray.slice &amp;&amp; myArray.join) {
+    // provavelmente um array
+    // (isso é chamado de "duck typing")
+}
+
+if (Object.prototype.toString.call(myArray) === '[object Array]') {
+    // Definitivamente um array!
+    // Isso é largamente considerado como a forma mais robusta para
+    // determinar se um valor específico é um Array.
+}</programlisting>
+    </example>
+
+    <para>O jQuery oferece métodos utilitários para ajudar você determinar 
+    o tipo de um valor arbitrário. Estes métodos serão mostrados depois.</para>
+  </section>
+
+  <section xml:id="javascript-basics.sections.scope">
+    <title>Escopo</title>
+
+    <para>"Escopo" refere-se a variáveis que estão disponíveis em um pedaço
+    do código em um determinado tempo. A falta de entendimento de escopo pode
+    levar a experiências de debugging frustrantes.</para>
+
+    <para>Quando uma variável é declarada dentro de uma função usando a palavra
+    chave <code>var</code>, ela é a única disponível para o código dentro daquela
+    função -- código fora desta função não podem acessar a variável. Por outro lado, 
+    funções definidas <emphasis>dentro</emphasis> daquela função <emphasis>terá acesso</emphasis> 
+    à variável declarada.</para>
+
+    <para>Além disso, variáveis que são declaradas dentro de uma função sem
+    o código <code>var</code> não são locais para a função  -- JavaScript
+    irá atravessar a cadeia do escopo para indicar onde a variável foi definida
+    anteriormente. Se a variável não foi previamente definida, ela será definida
+    no escopo global, onde podem acontecer consequencias extremamente inesperadas;</para>
+
+    <example>
+      <title>Funções tem acesso a variáveis definidas num mesmo 
+      escopo</title>
+
+      <programlisting>var foo = 'olá';
+
+var sayHello = function() {
+    console.log(foo);
+};
+
+sayHello();         // loga 'olá'
+console.log(foo);   // também loga 'olá'</programlisting>
+    </example>
+
+    <example>
+      <title>Código fora do escopo em que uma variável foi definida
+      não tem acesso à variável.</title>
+
+      <programlisting>var sayHello = function() {
+    var foo = 'olá';
+    console.log(foo);
+};
+
+sayHello();         // loga 'olá'
+console.log(foo);   // não loga nada</programlisting>
+    </example>
+
+    <example>
+      <title>Variáveis com o mesmo nome podem existir em escopos diferentes
+      com valores diferentes.</title>
+
+      <programlisting>var foo = 'mundo';
+
+var sayHello = function() {
+    var foo = 'olá';
+    console.log(foo);
+};
+
+sayHello();         // loga 'olá'
+console.log(foo);   // loga 'mundo'</programlisting>
+    </example>
+
+    <example xml:id="javascript-basics.examples.scope-value-change">
+      <title>Funções podem "ver" mudanças em valores de variáveis depois
+      que a função é definida</title>
+
+      <programlisting>var myFunction = function() {
+    var foo = 'olá';
+
+    var myFn = function() {
+        console.log(foo);
+    };
+
+    foo = 'mundo';
+
+    return myFn;
+};
+
+var f = myFunction();
+f();  // loga 'mundo' -- uh oh</programlisting>
+    </example>
+
+    <example>
+      <title>Insanidade do Escopo</title>
+
+      <programlisting>// uma função anônima auto-executável
+(function() {
+    var baz = 1;
+    var bim = function() { alert(baz); };
+    bar = function() { alert(baz); };
+})();
+
+console.log(baz);  // baz não é definido fora da função
+
+bar();  // bar é definida fora da função anônima
+        // porque ela não foi declarada com var; além disso,
+        // porque ela foi definida no mesmo escopo de baz,
+        // ela tem acesso a baz mesmo que outro código fora dela
+        // não tenha
+
+bim();  // bim não está definido fora da função anônima,
+        // então isto irá resultar em um erro</programlisting>
+    </example>
+  </section>
+
+  <section>
+    <title>Closures</title>
+
+    <para>Closures são uma extensão do conceito de escopo — funções têm acesso
+    a variáveis que estão disponíveis no escopo onde a função foi criada. Se isso
+    é confuso, não se preocupe: closures são geralmente entendidas melhor através
+    de um exemplo.</para>
+
+    <para>No <xref linkend="javascript-basics.examples.scope-value-change" />
+    nós vimos como as funções têm acesso para modificar valores de variáveis. O mesmo
+    tipo de comportamento existe com funções definidas dentro de laços -- a função
+    "vê" a mudança no valor da variável mesmo depois que a função foi definida, resultando
+    em todos os cliques alertando 5.</para>
+
+    <example>
+      <title>Como bloquear no valor de <code>i</code>?</title>
+
+      <programlisting>/* isso não se comportará como nós quisermos; */
+/* todo clique irá alertar 5 */
+for (var i=0; i&lt;5; i++) {
+    $('&lt;p&gt;click me&lt;/p&gt;').appendTo('body').click(function() {
+        alert(i);
+    });
+}</programlisting>
+    </example>
+
+    <example>
+      <title>Bloqueando no valor de <code>i</code> com uma closure</title>
+
+      <programlisting>/* conserto: “fecha” o valor de i dentro de createFuncion, então ela não irá mudar */
+var createFunction = function(i) {
+    return function() { alert(i); };
+};
+
+for (var i=0; i&lt;5; i++) {
+    $('p').appendTo('body').click(createFunction(i));
+}</programlisting>
+    </example>
+  </section>
+</chapter>

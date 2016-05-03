@@ -1,0 +1,26 @@
+{
+	"Zabbix" : {
+
+		"applications_include" : ["EMAIL","DOVECOT"],
+
+		"applications_exclude" : [ 
+			"POSTFIX"
+		],
+
+		"templates" : [
+			"Template 1",
+			"Template 2",
+			"Template 3"
+		],
+
+		"api_config" : {
+			"url" : "http://localhost/api_jsonrpc.php",
+			"user" : "admin",
+			"password" : "password"
+		}
+
+	},
+
+	"auth_token" : "YOUR-AUTH-TOKEN"
+
+}

@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<chapter version="5.0" xmlns="http://docbook.org/ns/docbook"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:svg="http://www.w3.org/2000/svg"
+         xmlns:m="http://www.w3.org/1998/Math/MathML"
+         xmlns:html="http://www.w3.org/1999/xhtml"
+         xmlns:db="http://docbook.org/ns/docbook">
+  <title>Plugins</title>
+
+  <section>
+    <title>O que exatamente é um plugin?</title>
+
+    <para>Um plugin do jQuery é simplesmente um novo método que nós usamos
+    para extender o protótipo de objeto do jQuery. Através da extensão do
+    protótipo, você permite que todos os objetos do jQuery herdem quaisquer
+    métodos que você adicionar. Como estabelecido, sempre que você chama 
+    <code>jQuery()</code> você está criando um novo objeto do jQuery, com
+    todos os métodos herdados.</para>
+
+    <para>A idéia de um plugin é fazer alguma coisa com uma coleção de elementos.
+    Você pode considerar que cada método que vem com o core do jQuery seja um
+    plugin, como <code>fadeOut</code> ou <code>addClass</code>.</para>
+
+    <para>Você pode fazer seus próprios plugins e usá-los privadamente no seu
+    código ou você pode liberá-lo para comunidade. Há milhares de plugins para
+    o jQuery disponíveis online. A barreira para criar um plugin próprio é tão
+    pequena que você desejará fazer um logo "de cara"!</para>
+  </section>
+
+  <section>
+    <title>Como criar um plugin básico</title>
+
+    <para>A notação para criar um novo plugin é a seguinte:</para>
+
+    <programlisting>(function($){
+    $.fn.myNewPlugin = function() {
+        return this.each(function(){
+            // faz alguma coisa
+        });
+    };
+}(jQuery));</programlisting>
+
+    <para>Mas não se deixe confundir. O objetivo de um plugin do jQuery é 
+    extender o protótipo do objeto do jQuery, e isso é o que está acontecendo
+    nesta linha:</para>
+
+    <programlisting>$.fn.myNewPlugin = function() { //...</programlisting>
+
+    <para>Nós encapsulamos esta associação numa função imediatamente invocada:</para>
+
+    <programlisting>(function($){
+    //...
+}(jQuery));</programlisting>
+
+    <para>Isso possui o efeito de criar um escopo "privado" que nos permite 
+    extender o jQuery usando o símbolo de dólar sem ter o risco de ter o dólar
+    sobrescrito por outra biblioteca.</para>
+
+    <para>Então nosso verdadeiro plugin, até agora, é este:</para>
+
+    <programlisting>$.fn.myNewPlugin = function() {
+    return this.each(function(){
+        // faz alguma coisa
+    });
+};</programlisting>
+
+    <para>A palavra chave <code>this</code> dentro do novo plugin refere-se 
+    ao objeto jQuery em que o plugin está sendo chamado.</para>
+
+    <programlisting>var somejQueryObject = $('#something');
+
+$.fn.myNewPlugin = function() {
+    alert(this === somejQueryObject);
+};
+
+somejQueryObject.myNewPlugin(); // alerta 'true'</programlisting>
+
+    <para>Seu objeto jQuery típico conterá referências para qualquer número de 
+    elementos DOM, e esse é o porquê que objetos jQuery são geralmente 
+    referenciados à coleções.</para>
+
+    <para>Então, para fazer algo com uma coleção, nós precisamos iterar sobre 
+    ela, que é mais facilmente feito utilizando o método <code>each()</code>
+    do jQuery:</para>
+
+    <programlisting>$.fn.myNewPlugin = function() {
+    return this.each(function(){
+    
+    });
+};</programlisting>
+
+    <para>O método <code>each()</code> do jQuery, assim como a maioria dos
+    outros métodos, retornam um objeto jQuery, permitindo-nos assim que 
+    possamos saber e adorar o 'encadeamento' (<code>$(...).css().attr()...</code>).
+    Nós não gostaríamos de quebrar esta convenção, então nós retornamos o objeto
+    <code>this</code>. Neste loop, você poder fazer o que você quiser com cada
+    elemento. Este é um exemplo de um pequeno plugin utilizando uma das técnicas
+    que nós discutimos:</para>
+
+    <programlisting>(function($){
+    $.fn.showLinkLocation = function() {
+        return this.filter('a').each(function(){
+            $(this).append(
+                ' (' + $(this).attr('href') + ')'
+            );
+        });
+    };
+}(jQuery));
+    
+// Exemplo de uso:
+$('a').showLinkLocation();</programlisting>
+
+    <para>Este prático plugin atravessa todas as âncoras na coleção e 
+    anexa o atributo <code>href</code> entre parênteses.</para>
+
+    <programlisting>&lt;!-- antes do plugin ser chamado: --&gt;
+&lt;a href="page.html"&gt;Foo&lt;/a&gt;
+    
+&lt;!-- Depois que o plugin foi chamado: --&gt;
+&lt;a href="page.html"&gt;Foo (page.html)&lt;/a&gt;</programlisting>
+
+    <para>Nosso plugin pode ser otimizado:</para>
+
+    <programlisting>(function($){
+    $.fn.showLinkLocation = function() {
+        return this.filter('a').append(function(){
+              return ' (' + this.href + ')';
+        });
+    };
+}(jQuery));</programlisting>
+
+    <para>Nós estamos utilizando a capacidade de aceitação de um callback do 
+    método <code>append</code>, e o valor de retorno deste callback irá determinar
+    o que será aplicado a cada elemento na coleção. Perceba também que nós não
+    estamos usando o método <code>attr</code> para obter o atributo <code>href</code>,
+    pois a API do DOM nativa nos dá um acesso facilitado através da propriedade
+    <code>href</code>.</para>
+
+    <para>Este é um outro exemplo de plugin. Este não requer que nós façamos
+    uma iteração sobre todos os elementos com o método <code>each()</code>.,
+    Ao invés disso, nós simplesmente iremos delegar para outros método do jQuery
+    diretamente:</para>
+
+    <programlisting>(function($){
+    $.fn.fadeInAndAddClass = function(duration, className) {
+        return this.fadeIn(duration, function(){
+            $(this).addClass(className);
+        });
+    };
+}(jQuery));
+    
+// Exemplo de uso:
+$('a').fadeInAndAddClass(400, 'finishedFading');</programlisting>
+  </section>
+
+  <section>
+    <title>Procurando &amp; Avaliando Plugins</title>
+
+    <para>Os plugins extendem funcionalidades básicas do jQuery, e um dos 
+    aspectos mais celebrados da biblioteca é seu extensivo ecossistema de 
+    plugins. De ordenação de tabelas à validação de formulário e autocompletamento
+    ... se há uma necessidade para algo, há boas chances que alguém já tenha
+    escrito um plugin para isso.</para>
+
+    <para>A qualidade dos plugins do jQuery varia muito. Muitos plugins são
+    extensivamente testados e bem mantidos, mas outros são porcamente criados
+    e então ignorados. Mais do que algumas falhas para seguir as melhores 
+    práticas.</para>
+
+    <para>O Google é seu melhor recurso inicial para localização de plugins,
+    embora o time do jQuery esteja trabalhando em um repositório de plugin
+    melhorado. Uma vez que você identificou  algumas opções através de uma
+    busca do Google, você pode querer consultar a lista de emails do jQuery
+    ou o canal de IRC #jquery para obter informações de outros.</para>
+
+    <para>Quando estiver procurando por um plugin para preencher uma necessidade,
+    faça seu trabalho de casa. Tenha certeza que o plugin é bem documentado, e 
+    veja se o autor provê vários exemplos do seu uso. Tenha cuidado com plugins
+    que fazem muito mais do que você precisa; eles podem acabar adicionando um
+    overhead substancial à sua página. Para mais dicas sobre como identificar 
+    um plugin ruim, leia <link
+    xlink:href="http://remysharp.com/2010/06/03/signs-of-a-poorly-written-jquery-plugin/">Signs
+    of a poorly written jQuery plugin</link> do Remy Sharp.</para>
+
+    <para>Uma vez que você escolhe um plugin, você precisará adicioná-lo à
+    sua página. Baixe o plugin, descompacte-o se necessário, coloque-o no
+    diretório da sua aplicação e então inclua o plugin na sua página usando
+    uma tag script (depois que você incluir o jQuery).</para>
+  </section>
+
+  <section>
+    <title>Escrevendo Plugins</title>
+
+    <para>Algumas vezes você quer que uma pequena funcionalidade esteja 
+    disponível pelo seu código; por exemplo, talvez você queira que um simples
+    método possa ser chamado para executar uma série de operações sobre uma 
+    seleção do jQuery. Neste caso, você pode querer escrever um plugin.</para>
+
+    <para>A maioria dos plugins do jQuery são simplesmente métodos criados no
+    namespace <code>$.fn</code>. O jQuery garante que um método chamado num 
+    objeto jQuery possa acessar aquele objeto jQuery como <code>this</code> 
+    dentro do método. Em retorno, seu plugin precisa garantir que ele retorna
+    o mesmo objeto que ele recebeu, a menos que o contrário seja explicitamente
+    documentado.</para>
+
+    <para>Este é um exemplo de um plugin simples:</para>
+
+    <example>
+      <title>Criando um plugin para adicionar e remover uma classe no hover</title>
+
+      <programlisting>// definindo o plugin
+(function($){
+    $.fn.hoverClass = function(c) {
+        return this.hover(
+            function() { $(this).toggleClass(c); }
+        );
+    };
+}(jQuery);
+
+// utilizando o plugin
+$('li').hoverClass('hover');</programlisting>
+    </example>
+
+    <para>Para mais informações sobre desenvolvimento de plugins, leia o post essencial do
+    Mike Alsup's,
+    <link
+    xlink:href="http://www.learningjquery.com/2007/10/a-plugin-development-pattern">A
+    Plugin Development Pattern</link>. Nele, ele cria um plugin chamado
+    <code>$.fn.hilight</code>, que provê suporte para o plugin de metadados 
+    se ele estiver presente e provê um método centralizado para configuração
+    central e opções de instância para o plugin.</para>
+
+    <example>
+      <title>O Padrão de Desenvolvimento de Plugins do Mike Alsup</title>
+
+      <programlisting>//
+// cria a closure
+//
+(function($) {
+  //
+  // definição do plugin
+  //
+  $.fn.hilight = function(options) {
+    debug(this);
+    // constrói as opções principais antes da iteração com elemento
+    var opts = $.extend({}, $.fn.hilight.defaults, options);
+    // itera e reformata cada elemento encontrado
+    return this.each(function() {
+      $this = $(this);
+      // constrói opções específicas do elemento
+      var o = $.meta ? $.extend({}, opts, $this.data()) : opts;
+      // atualiza estilos do elemento
+      $this.css({
+        backgroundColor: o.background,
+        color: o.foreground
+      });
+      var markup = $this.html();
+      // chama nossa função de formatação
+      markup = $.fn.hilight.format(markup);
+      $this.html(markup);
+    });
+  };
+  //
+  // função privada para debugging
+  //
+  function debug($obj) {
+    if (window.console &amp;&amp; window.console.log)
+      window.console.log('hilight selection count: ' + $obj.size());
+  };
+  //
+  // define e expõe nossa função de formatação
+  //
+  $.fn.hilight.format = function(txt) {
+    return '&lt;strong&gt;' + txt + '&lt;/strong&gt;';
+  };
+  //
+  // padrões do plugin
+  //
+  $.fn.hilight.defaults = {
+    foreground: 'red',
+    background: 'yellow'
+  };
+//
+// fim da closure
+//
+})(jQuery);</programlisting>
+    </example>
+  </section>
+
+  <section>
+    <title>Escrevendo plugins com estado utilizando a fábrica de widgets do jQuery UI</title>
+
+    <para>
+      <note>
+        <para>Esta seção é baseada, com permissão, no post de blog <link
+        xlink:href="http://blog.nemikor.com/2010/05/15/building-stateful-jquery-plugins/">Building
+        Stateful jQuery Plugins</link> de Scott Gonzalez.</para>
+      </note>Enquanto a maioria dos plugins para jQuery são stateless - isto é,
+      nós os chamamos num elemento e isso é a extensão de nossa interação com 
+      o plugin - há um grande conjunto de funcionalidades que não se encaixam
+      no padrão básico de plugins.</para>
+
+    <para>Como forma de preencher esta lacula, o jQuery UI implementa um sistema
+    de plugin mais avançado. O novo sistema gerencia estado, permite múltiplas
+    funções sendo expostas através de um plugin simples, e provê vários pontos
+    de extensão. Este sistema é chamado de fábrica de widgets e é exposto como 
+    <code>jQuery.widget</code> e faz parte do jQuery UI 1.8; entretanto, pode 
+    ser usado independentemente do jQuery UI. </para>
+
+    <para>Para demonstrar as capacidades da fábrica de widget, nós iremos 
+    fazer um simples plugin para barra de progresso.</para>
+
+    <para>Para iniciar, nós iremos criar uma barra de progresso que nos
+    permite especificar o progresso uma só vez. Como podemos ver abaixo,
+    isso pode ser feito através da chamada à <code>jQuery.widget</code>
+    com dois parâmetros: o nome do plugin a ser criado e um literal objeto
+    contendo funções para dar suporte ao nosso plugin. Quando nosso plugin
+    for chamado, ele irá criar uma nova instância do plugin e todas as funções
+    serão executadas dentro do contexto desta instância. Isso é diferente de 
+    um plugin padrão do jQuery em duas formas importantes. Primeiro, o 
+    contexto é um objeto, não um elemento do DOM. Segundo, o contexto é sempre
+    um objeto, nunca uma coleção. </para>
+
+    <example>
+      <title>Um plugin simples, stateful utilizando a fábrica de widgets do 
+      jQuery UI.</title>
+
+      <programlisting>$.widget("nmk.progressbar", {
+    _create: function() {
+        var progress = this.options.value + "%";
+        this.element
+            .addClass("progressbar")
+            .text(progress);
+    }
+});</programlisting>
+    </example>
+
+    <para>O nome do plugin precisa conter um namespace; neste caso nós usamos
+    o namespace <code>nmk</code>. Há uma limitação que namespaces têm que ter
+    exatamente um nível de profundidade - isto é, nós não podemos usar um 
+    namespace como <code>nmk.foo</code>. Nós podemos também ver que a 
+    fábrica de widgets nos deu duas propriedades. <code>this.element</code> é
+    um objeto jQuery contendo exatamente um elemento. Se nosso plugin é chamado
+    num objeto do jQuery contendo mútiplos elementos, uma instância nova será
+    criada para cada elemento e cada instância terá seu próprio <code>this.element</code>. 
+    A segunda propriedade, <code>this.options</code>, é um hash contendo pares
+    chave/valor para todas as nossas opções do plugin. Estas opções podem ser 
+    passadas para nosso plugin como mostrado aqui. </para>
+
+    <note>
+      <para>No nosso exemplo, nós usamos o namespace <code>nmk</code>. O
+      namespace <code>ui</code> é reservado para plugins oficiais do jQuery UI.
+      Quando fizer seus próprios plugins, você deve criar seu próprio namespace.
+      Isso deixa claro de onde o plugin veio e se ele faz parte de uma coleção
+      maior.</para>
+    </note>
+
+    <example>
+      <title>Passando opções para um Widget</title>
+
+      <programlisting>$("&lt;div&gt;&lt;/div&gt;")
+    .appendTo( "body" )
+    .progressbar({ value: 20 });</programlisting>
+    </example>
+
+    <para>Quando nós chamamos <code>jQuery.widget</code>, ele estende o jQuery
+    adicionando um método em <code>jQuery.fn</code> (da mesma forma que nós
+    criamos um plugin padrão). O nome da função que ele adiciona é baseado no
+    nome que você passa para o <code>jQuery.widget</code>, sem o namespace; no
+    nosso caso ele irá criar <code>jQuery.fn.progressbar</code>. As opções 
+    passadas para nosso plugins estão em <code>this.options</code>, dentro de
+    nossa instância do plugin. Como mostrado abaixo, nós podemos especificar 
+    valores padrão para qualquer uma das nossas opções. Quando estiver projetando
+    sua API, você deve perceber o caso mais comum para seu plugin de modo que você
+    possa setar valores padrão e fazer todas as opções verdadeiramente opcionais. </para>
+
+    <example>
+      <title>Setando opções padrão para um Widget</title>
+
+      <programlisting>$.widget("nmk.progressbar", {
+    // opções padrão
+    options: {
+        value: 0
+    },
+
+    _create: function() {
+        var progress = this.options.value + "%";
+        this.element
+            .addClass( "progressbar" )
+            .text( progress );
+    }
+});</programlisting>
+    </example>
+
+    <section>
+      <title>Adicionando métodos a um Widget</title>
+
+      <para>Agora que nós podemos inicializar nossa barra de progresso, nós
+      iremos adicionar a habilidade de executar ações através da chamada de
+      métodos na instância do nosso plugin. Para definir um método do plugin
+      nós simplesmente incluímos a função num literal objeto que nós passamos
+      para <code>jQuery.widget</code>. Nós também podemos definir métodos
+      “privados” se adicionarmos um underscore ("_") antes do nome da função. 
+      </para>
+
+      <example>
+        <title>Criando métodos para um Widget</title>
+
+        <programlisting>$.widget("nmk.progressbar", {
+    options: {
+        value: 0
+    },
+
+    _create: function() {
+        var progress = this.options.value + "%";
+        this.element
+            .addClass("progressbar")
+            .text(progress);
+    },
+
+    // cria um método público
+    value: function(value) {
+        // nenhum valor passado, atuando como um getter
+        if (value === undefined) {
+            return this.options.value;
+        // valor passado, atuando como um setter
+        } else {
+            this.options.value = this._constrain(value);
+            var progress = this.options.value + "%";
+            this.element.text(progress);
+        }
+    },
+
+    // criando um método privado
+    _constrain: function(value) {
+        if (value &gt; 100) {
+            value = 100;
+        }
+        if (value &lt; 0) {
+            value = 0;
+        }
+        return value;
+    }
+});
+</programlisting>
+      </example>
+
+      <para>Para chamar um método numa instância do plugin, você precisa passar
+      o nome do método para o plugin do jQuery. Se você estiver chamando um 
+      método que aceita parâmetros, você simplemente passa estes parâmetros
+      depois do nome do método. 
+      </para>
+
+      <example>
+        <title>Chamando métodos numa instância do plugin</title>
+
+        <programlisting>var bar = $("&lt;div&gt;&lt;/div&gt;")
+    .appendTo("body")
+    .progressbar({ value: 20 });
+
+// pega o valor atual
+alert(bar.progressbar("value"));
+
+// atualiza o valor
+bar.progressbar("value", 50);
+
+// pega o valor atual denovo
+alert(bar.progressbar("value"));</programlisting>
+      </example>
+
+      <note>
+        <para>Executar métodos através da passagem do nome do mesmo para a mesma
+        função do jQuery que foi usada para inicializar o plugin pode parecer
+        estranho. Isso é feito para previnir a poluição do namespace do jQuery 
+        enquanto mantém a habilidade de encadear chamadas de métodos. </para>
+      </note>
+    </section>
+
+    <section>
+      <title>Trabalhando com Opções de Widget</title>
+
+      <para>Um dos métodos que é automaticamente disponível para nosso plugin
+      é o método <code>option</code>. O método option permite que você obtenha
+      e defina opções depois da inicialização. Este método funciona exatamente
+      como os métodos <code>css</code> e <code>attr</code> do jQuery: você pode
+      passar somente o nome para usá-lo como um getter, um nome e um valor para
+      usá-lo com um setter único, ou um hash de pares nome/valor para setar 
+      múltiplos valores. Quando usado como um getter, o plugin irá retornar o 
+      valor atual da opção que corresponde ao nome que foi passado. Quando usado
+      como um setter, o método <code>_setOption</code> do plugin será chamado
+      para cada opção que estiver sendo setada. Nós podemos especificar um 
+      método <code>_setOption</code> no nosso plugin para reagir a mudanças 
+      de opção. </para>
+
+      <example>
+        <title>Respondendo quando a opção é setada</title>
+
+        <programlisting>$.widget("nmk.progressbar", {
+    options: {
+        value: 0
+    },
+
+    _create: function() {
+        this.element.addClass("progressbar");
+        this._update();
+    },
+
+    _setOption: function(key, value) {
+        this.options[key] = value;
+        this._update();
+    },
+
+    _update: function() {
+        var progress = this.options.value + "%";
+        this.element.text(progress);
+    }
+});</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Adicionando Callbacks</title>
+
+      <para>Uma das formas mais fáceis de fazer seu plugin estensível é 
+      adicionar callbacks para que os usuários possam reagir quando o estado
+      do plugin mudar. Nós podemos ver abaixo como adicionar um callback à nossa
+      barra de progresso para enviar um sinal quando a barra de progresso
+      chegar à 100%. O método <code>_trigger</code> requer três parâmetros:
+      o nome do callback, um objeto de evento nativo que iniciou o callback, e
+      um hash de dados relevantes para o evento. O nome do callback é o único
+      parâmetro requerido, mas os outros podem ser muito úteis para usuários
+      que querem implementar funcionalidades customizadas no topo do seu plugin.
+      Por exemplo, se nós construíssemos um plugin arrastável, nós poderíamos
+      passar o evento mouseover nativo quando dispararmos o callback de arrastar;
+      Isso permitiria que usuários reagissem ao arraste baseado nas coordenadas
+      x/y providas pelo objeto do evento. </para>
+
+      <example>
+        <title>Provendo callbacks para extensão do usuário</title>
+
+        <programlisting>$.widget("nmk.progressbar", {
+    options: {
+        value: 0
+    },
+
+    _create: function() {
+        this.element.addClass("progressbar");
+        this._update();
+    },
+
+    _setOption: function(key, value) {
+        this.options[key] = value;
+        this._update();
+    },
+
+    _update: function() {
+        var progress = this.options.value + "%";
+        this.element.text(progress);
+        if (this.options.value == 100) {
+            this._trigger("complete", null, { value: 100 });
+        }
+    }
+});</programlisting>
+      </example>
+
+      <para>Funções de callback são essencialmente opções adicionais, então
+      você pode obter e setá-las como qualquer outra opção. Quando um callback
+      é executado, um evento correspondente é executado também. O tipo do evento
+      é determinado pela concatenação do nome do plugin e do nome do callback.
+      O callback e o evento recebem os mesmos dois parâmetros: um objeto evento
+      e um hash dos dados relevantes para o evento, como veremos a seguir. </para>
+
+      <para>Se seu plugin tem funcionalidade que você deseja permitir que
+      o usuário previna, a melhor forma de suportar isso é criando callbacks
+      canceláveis. Usuários podem cancelar um callback, ou seu evento associado,
+      da mesma forma que eles cancelam qualquer evento nativo: chamando
+      <code>event.preventDefault()</code> ou usando <code>return false</code>.
+      Se o usuário cancelar o callback, o método <code>_trigger</code> irá 
+      retornar falso para que você implemente a funcionalidade apropriada
+      dentro do seu plugin. </para>
+
+      <example>
+        <title>Vinculando à eventos do Widget</title>
+
+        <programlisting>var bar = $("&lt;div&gt;&lt;/div&gt;")
+    .appendTo("body")
+    .progressbar({
+        complete: function(event, data) {
+            alert( "Callbacks são ótimos!" );
+        }
+    })
+    .bind("progressbarcomplete", function(event, data) {
+        alert("Eventos borbulham e suportam muitos manipuladores para extrema flexibilidade.");
+        alert("O valor da barra de progresso é " + data.value);
+    });
+
+bar.progressbar("option", "value", 100);</programlisting>
+      </example>
+
+      <sidebar>
+        <title>A Fábrica de Widget: Nos Bastidores</title>
+
+        <para>Quando você chama <code>jQuery.widget</code>, ele cria uma função
+        construtora para seu plugin e seta o literal objeto que você passou 
+        como protótipo para suas instâncias do plugin. Todas as funcionalidades
+        que são automaticamente adicionadas a seu plugin vem de um protótipo
+        base de widget, que é definido como <code>jQuery.Widget.prototype</code>.
+        Quando uma instância do plugin é criada, ela é armazenada no elemento
+        DOM original utilizando <code>jQuery.data</code>, com o plugin tendo o
+        mesmo nome da chave.</para>
+
+        <para>Pelo fato da instância do plugin estar diretamente ligada ao
+        elemento DOM, você pode acessar a instância do plugin diretamente ao
+        invés de ir ao método exposto do plugin. Isso permitirá que você chame 
+        métodos diretamente na instância do plugin ao invés de passar 
+        nomes de métodos como strings e também lhe dará acesso direto às
+        propriedades do plugin. </para>
+
+        <programlisting>var bar = $("&lt;div&gt;&lt;/div&gt;")
+    .appendTo("body")
+    .progressbar()
+    .data("progressbar");
+
+// chama um método diretamente na instância do plugin
+bar.option("value", 50);
+
+// acessa propriedades na instância do plugin
+alert(bar.options.value);</programlisting>
+
+        <para>Um dos maiores benefícios de ter um construtor e um protótipo
+        para um plugin é a facilidade de estendê-lo. Podemos modificar o
+        comportamento de todas as instâncias do nosso plugin adicionando ou 
+        modificando métodos no protótipo do plugin. Por exemplo, se quiséssemos
+        adicionar um método à nossa barra de progresso para resetar o progresso
+        para 0%, nós poderíamos adicionar este método ao protótipo e ele estaria
+        instantaneamente disponível para ser chamado em qualquer instância do
+        plugin. </para>
+
+        <programlisting>$.nmk.progressbar.prototype.reset = function() {
+    this._setOption("value", 0);
+};</programlisting>
+      </sidebar>
+    </section>
+
+    <section>
+      <title>Limpando</title>
+
+      <para>Em alguns casos, faz sentido permitir usuários aplicar seu plugin
+      e desaplicá-lo depois. Você pode fazer isso pelo método destroy. Dentro
+      do método <code>destroy</code>, você deve desfazer qualquer coisa que seu
+      plugin possa ter feito desde o início. O método <code>destroy</code> é 
+      automaticamente chamado se o elemento que a instância do seu plugin está
+      amarrado é removido do DOM, para que isso seja usado para coleção de lixo
+      (garbage collection). O método  <code>destroy</code> padrão remove a
+      ligação entre o elemento DOM e a instância do plugin, então é importante
+      chamar a função <code>destroy</code> base dentro do <code>destroy</code>
+      do seu plugin. </para>
+
+      <example>
+        <title>Adicionando um método destroy à um Widget</title>
+
+        <programlisting>$.widget( "nmk.progressbar", {
+    options: {
+        value: 0
+    },
+
+    _create: function() {
+        this.element.addClass("progressbar");
+        this._update();
+    },
+
+    _setOption: function(key, value) {
+        this.options[key] = value;
+        this._update();
+    },
+
+    _update: function() {
+        var progress = this.options.value + "%";
+        this.element.text(progress);
+        if (this.options.value == 100) {
+            this._trigger("complete", null, { value: 100 });
+        }
+    },
+
+    destroy: function() {
+        this.element
+            .removeClass("progressbar")
+            .text("");
+
+        // chama função destroy base
+        $.Widget.prototype.destroy.call(this);
+    }
+});</programlisting>
+      </example>
+    </section>
+
+    <section>
+      <title>Conclusão</title>
+
+      <para>A fábrica de widget é o único jeito de criar plugins com estado.
+      Há alguns poucos modelos diferentes que podem ser usados e cada um tem
+      suas vantagens e desvantagens. A fábrica de widget resolve muitos dos
+      problemas comuns para você e pode melhorar muito a produtividade e também
+      melhora bastante o reuso de código, fazendo com que funcione bem para o 
+      jQuery UI e para outros plugins com estado. </para>
+    </section>
+  </section>
+
+  <section>
+    <title>Exercícios</title>
+
+    <xi:include href="exercises/sortable-plugin.xml" xpointer="element(/1)" />
+
+    <xi:include href="exercises/striping-plugin.xml" xpointer="element(/1)" />
+  </section>
+</chapter>

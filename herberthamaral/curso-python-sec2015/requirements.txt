@@ -1,0 +1,6 @@
+matplotlib==1.4.3
+numpy==1.9.2
+scikit-learn==0.16.1
+scipy==0.15.1
+sympy==0.7.6
+Flask==0.10.1

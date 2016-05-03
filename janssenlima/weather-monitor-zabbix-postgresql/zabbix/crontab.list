@@ -1,0 +1,2 @@
+# Weather
+*/30 * * * * /your/local/path/conditions_bratislava.py
